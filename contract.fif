@@ -1,0 +1,525 @@
+// automatically generated from `/Users/gr8/projects/telegram/ton/ton/crypto/smartcont/stdlib.fc` `contract.fc` 
+PROGRAM{
+  DECLPROC randomInRange
+  DECLPROC spinRoulette
+  DECLPROC isZero
+  DECLPROC isNotZero
+  DECLPROC isOdd
+  DECLPROC isEven
+  DECLPROC isRed
+  DECLPROC isBlack
+  DECLPROC isDozen1
+  DECLPROC isDozen2
+  DECLPROC isDozen3
+  DECLPROC is1To18
+  DECLPROC is19To36
+  DECLPROC loadData
+  DECLPROC storeData
+  DECLPROC loadMinMaxBet
+  DECLPROC updateMinMaxBet
+  DECLPROC updateWithdrawnAmount
+  DECLPROC updateStats
+  DECLPROC updateSeqno
+  DECLPROC withdraw
+  DECLPROC processWin
+  DECLPROC recv_internal
+  DECLPROC recv_external
+  103021 DECLMETHOD config
+  85143 DECLMETHOD seqno
+  randomInRange PROC:<{
+    //  from to
+    OVER	//  from to from
+    SUB	//  from _2
+    INC	//  from _4
+    RAND	//  from _5
+    ADD	//  _6
+  }>
+  spinRoulette PROC:<{
+    // 
+    -1 PUSHINT	//  _0=-1
+    36 PUSHINT	//  _0=-1 _1=36
+    randomInRange INLINECALLDICT	//  _2
+  }>
+  isZero PROC:<{
+    //  n
+    1 LESSINT	//  _2
+  }>
+  isNotZero PROC:<{
+    //  n
+    0 GTINT	//  _2
+  }>
+  isOdd PROC:<{
+    //  n
+    1 MODPOW2#	//  _2
+    1 EQINT	//  _4
+  }>
+  isEven PROC:<{
+    //  n
+    1 MODPOW2#	//  _2
+    0 EQINT	//  _4
+  }>
+  isRed PROC:<{
+    //  n
+    DUP	//  n n
+    0 GTINT	//  n _2
+    OVER	//  n _2 n
+    11 LESSINT	//  n _2 _4
+    AND	//  n _5
+    OVER	//  n _5 n
+    18 GTINT	//  n _5 _7
+    s2 PUSH	//  n _5 _7 n
+    29 LESSINT	//  n _5 _7 _9
+    AND	//  n _5 _10
+    OR	//  n _11
+    IFJMP:<{	//  n
+      isOdd INLINECALLDICT	//  _12
+    }>	//  n
+    isEven INLINECALLDICT	//  _13
+  }>
+  isBlack PROC:<{
+    //  n
+    isRed CALLDICT	//  _1
+    NOT	//  _2
+  }>
+  isDozen1 PROC:<{
+    //  n
+    DUP	//  n n
+    0 GTINT	//  n _2
+    SWAP	//  _2 n
+    13 LESSINT	//  _2 _4
+    AND	//  _5
+  }>
+  isDozen2 PROC:<{
+    //  n
+    DUP	//  n n
+    12 GTINT	//  n _2
+    SWAP	//  _2 n
+    25 LESSINT	//  _2 _4
+    AND	//  _5
+  }>
+  isDozen3 PROC:<{
+    //  n
+    DUP	//  n n
+    24 GTINT	//  n _2
+    SWAP	//  _2 n
+    37 LESSINT	//  _2 _4
+    AND	//  _5
+  }>
+  is1To18 PROC:<{
+    //  n
+    DUP	//  n n
+    0 GTINT	//  n _2
+    SWAP	//  _2 n
+    19 LESSINT	//  _2 _4
+    AND	//  _5
+  }>
+  is19To36 PROC:<{
+    //  n
+    DUP	//  n n
+    18 GTINT	//  n _2
+    SWAP	//  _2 n
+    37 LESSINT	//  _2 _4
+    AND	//  _5
+  }>
+  loadData PROC:<{
+    // 
+    c4 PUSH	//  _1
+    CTOS	//  cs
+    32 LDU	//  _4 cs
+    256 LDU	//  _4 _7 cs
+    LDGRAMS	//  _4 _7 _10 cs
+    LDGRAMS	//  _4 _7 _10 _12 cs
+    64 LDU	//  _4 _7 _10 _12 _14 cs
+    64 LDU	//  _4 _7 _10 _12 _14 _17 cs
+    64 LDU	//  _4 _7 _10 _12 _14 _17 _20 cs
+    LDGRAMS	//  _4 _7 _10 _12 _14 _17 _20 _23 cs
+    LDGRAMS	//  _4 _7 _10 _12 _14 _17 _20 _23 _25 cs
+    LDGRAMS	//  res res res res res res res res res res cs
+    ENDS
+  }>
+  storeData PROC:<{
+    //  seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount
+    NEWC	//  seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount _10
+    s1 s10 XCHG	//  withdrawnAmount pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount seqno _10
+    32 STU	//  withdrawnAmount pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount _12
+    s1 s8 XCHG	//  withdrawnAmount lostAmount minBet maxBet playedGames wonGames lostGames wonAmount pubKey _12
+    256 STU	//  withdrawnAmount lostAmount minBet maxBet playedGames wonGames lostGames wonAmount _14
+    s0 s6 XCHG2	//  withdrawnAmount lostAmount wonAmount maxBet playedGames wonGames lostGames _14 minBet
+    STGRAMS	//  withdrawnAmount lostAmount wonAmount maxBet playedGames wonGames lostGames _15
+    s0 s4 XCHG2	//  withdrawnAmount lostAmount wonAmount lostGames playedGames wonGames _15 maxBet
+    STGRAMS	//  withdrawnAmount lostAmount wonAmount lostGames playedGames wonGames _16
+    s1 s2 XCHG	//  withdrawnAmount lostAmount wonAmount lostGames wonGames playedGames _16
+    64 STU	//  withdrawnAmount lostAmount wonAmount lostGames wonGames _18
+    64 STU	//  withdrawnAmount lostAmount wonAmount lostGames _20
+    64 STU	//  withdrawnAmount lostAmount wonAmount _22
+    SWAP	//  withdrawnAmount lostAmount _22 wonAmount
+    STGRAMS	//  withdrawnAmount lostAmount _23
+    SWAP	//  withdrawnAmount _23 lostAmount
+    STGRAMS	//  withdrawnAmount _24
+    SWAP	//  _24 withdrawnAmount
+    STGRAMS	//  _25
+    ENDC	//  _26
+    c4 POP
+  }>
+  loadMinMaxBet PROC:<{
+    // 
+    c4 PUSH	//  _1
+    CTOS	//  _2
+    32 PUSHINT	//  _2 _3=32
+    SDSKIPFIRST	//  _4
+    8 PUSHPOW2	//  _4 _5=256
+    SDSKIPFIRST	//  cs
+    LDGRAMS	//  _7 cs
+    LDGRAMS	//  _7 _14 _13
+    DROP	//  _7 _9
+  }>
+  updateMinMaxBet PROC:<{
+    //  newMinBet newMaxBet
+    loadData CALLDICT	//  newMinBet newMaxBet _16 _17 _18 _19 _20 _21 _22 _23 _24 _25
+    s6 POP
+    s6 POP	//  minBet maxBet seqno pubKey lostAmount withdrawnAmount playedGames wonGames lostGames wonAmount
+    s0 s7 XCHG	//  minBet maxBet wonAmount pubKey lostAmount withdrawnAmount playedGames wonGames lostGames seqno
+    INC	//  minBet maxBet wonAmount pubKey lostAmount withdrawnAmount playedGames wonGames lostGames seqno
+    s0 s9 XCHG
+    s6 s8 XCHG
+    s0 s7 XCHG
+    2 4 BLKSWAP	//  seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount
+    storeData CALLDICT
+  }>
+  updateWithdrawnAmount PROC:<{
+    //  withdrawn
+    loadData CALLDICT	//  withdrawn seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount
+    s0 s10 XCHG2	//  lostAmount seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount withdrawnAmount withdrawn
+    ADD	//  lostAmount seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount withdrawnAmount
+    s0 s8 XCHG	//  lostAmount withdrawnAmount pubKey minBet maxBet playedGames wonGames lostGames wonAmount seqno
+    INC	//  lostAmount withdrawnAmount pubKey minBet maxBet playedGames wonGames lostGames wonAmount seqno
+    s0 s9 XCHG
+    8 ROLL	//  seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount
+    storeData CALLDICT
+  }>
+  updateStats PROC:<{
+    //  isWon value
+    loadData CALLDICT	//  isWon value seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount
+    s0 s5 XCHG	//  isWon value seqno pubKey minBet maxBet withdrawnAmount wonGames lostGames wonAmount lostAmount playedGames
+    INC	//  isWon value seqno pubKey minBet maxBet withdrawnAmount wonGames lostGames wonAmount lostAmount playedGames
+    s0 s11 XCHG	//  playedGames value seqno pubKey minBet maxBet withdrawnAmount wonGames lostGames wonAmount lostAmount isWon
+    IF:<{	//  playedGames value seqno pubKey minBet maxBet withdrawnAmount wonGames lostGames wonAmount lostAmount
+      s0 s3 XCHG	//  playedGames value seqno pubKey minBet maxBet withdrawnAmount lostAmount lostGames wonAmount wonGames
+      INC	//  playedGames value seqno pubKey minBet maxBet withdrawnAmount lostAmount lostGames wonAmount wonGames
+      s0 s9 XCHG	//  playedGames wonGames seqno pubKey minBet maxBet withdrawnAmount lostAmount lostGames wonAmount value
+      ADD	//  playedGames wonGames seqno pubKey minBet maxBet withdrawnAmount lostAmount lostGames wonAmount
+    }>ELSE<{	//  playedGames value seqno pubKey minBet maxBet withdrawnAmount wonGames lostGames wonAmount lostAmount
+      s0 s2 XCHG	//  playedGames value seqno pubKey minBet maxBet withdrawnAmount wonGames lostAmount wonAmount lostGames
+      INC	//  playedGames value seqno pubKey minBet maxBet withdrawnAmount wonGames lostAmount wonAmount lostGames
+      s2 s9 XCHG2	//  playedGames lostGames seqno pubKey minBet maxBet withdrawnAmount wonGames wonAmount lostAmount value
+      ADD	//  playedGames lostGames seqno pubKey minBet maxBet withdrawnAmount wonGames wonAmount lostAmount
+      s0 s8 s8 XCHG3	//  playedGames wonGames seqno pubKey minBet maxBet withdrawnAmount lostAmount lostGames wonAmount
+    }>
+    s7 s9 XCHG
+    s6 s8 XCHG
+    s5 s7 XCHG
+    s4 s6 XCHG
+    s0 s0 s3 XCHG3	//  seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount
+    storeData CALLDICT
+  }>
+  updateSeqno PROC:<{
+    // 
+    loadData CALLDICT	//  seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount
+    s0 s9 XCHG	//  withdrawnAmount pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount seqno
+    INC	//  withdrawnAmount pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount seqno
+    s0 s9 XCHG	//  seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount
+    storeData CALLDICT
+  }>
+  withdraw PROC:<{
+    //  addr amount
+    0 PUSHINT	//  addr amount _2=0
+    DUP	//  addr amount _2=0 _3=0
+    24 PUSHINT	//  addr amount _2=0 _3=0 _4=24
+    NEWC	//  addr amount _2=0 _3=0 _4=24 _5
+    6 STU	//  addr amount _2=0 _3=0 _7
+    s0 s4 XCHG2	//  _3=0 amount _2=0 _7 addr
+    STSLICER	//  _3=0 amount _2=0 _8
+    ROT	//  _3=0 _2=0 _8 amount
+    STGRAMS	//  _3=0 _2=0 _9
+    s1 s2 XCHG	//  _2=0 _3=0 _9
+    107 STU	//  _2=0 _23
+    32 STU	//  _25
+    ENDC	//  _26
+    3 PUSHINT	//  _26 _29
+    SENDRAWMSG
+  }>
+  processWin PROC:<{
+    //  query_id s_addr prize
+    4278190081 PUSHINT	//  query_id s_addr prize _3=4278190081
+    0 PUSHINT	//  query_id s_addr prize _3=4278190081 _4=0
+    24 PUSHINT	//  query_id s_addr prize _3=4278190081 _4=0 _5=24
+    NEWC	//  query_id s_addr prize _3=4278190081 _4=0 _5=24 _6
+    6 STU	//  query_id s_addr prize _3=4278190081 _4=0 _8
+    s0 s4 XCHG2	//  query_id _4=0 prize _3=4278190081 _8 s_addr
+    STSLICER	//  query_id _4=0 prize _3=4278190081 _9
+    ROT	//  query_id _4=0 _3=4278190081 _9 prize
+    STGRAMS	//  query_id _4=0 _3=4278190081 _10
+    s1 s2 XCHG	//  query_id _3=4278190081 _4=0 _10
+    107 STU	//  query_id _3=4278190081 _24
+    32 STU	//  query_id _26
+    64 STU	//  _28
+    ENDC	//  _29
+    66 PUSHINT	//  _29 _32
+    SENDRAWMSG
+  }>
+  recv_internal PROC:<{
+    //  msg_value in_msg_cell in_msg
+    SWAP	//  msg_value in_msg in_msg_cell
+    CTOS	//  msg_value in_msg cs
+    4 LDU	//  msg_value in_msg flags cs
+    SWAP
+    1 PUSHINT	//  msg_value in_msg cs flags _9=1
+    AND	//  msg_value in_msg cs _10
+    IFJMP:<{	//  msg_value in_msg cs
+      3 BLKDROP	// 
+    }>	//  msg_value in_msg cs
+    OVER	//  msg_value in_msg cs in_msg
+    SEMPTY	//  msg_value in_msg cs _11
+    IFJMP:<{	//  msg_value in_msg cs
+      3 BLKDROP	// 
+    }>	//  msg_value in_msg cs
+    SWAP	//  msg_value cs in_msg
+    32 LDU	//  msg_value cs op in_msg
+    OVER	//  msg_value cs op in_msg op
+    0 EQINT	//  msg_value cs op in_msg _17
+    IFJMP:<{	//  msg_value cs op in_msg
+      4 BLKDROP	// 
+    }>	//  msg_value cs op in_msg
+    loadMinMaxBet CALLDICT	//  msg_value cs op in_msg minBet maxBet
+    s5 s1 PUXC	//  msg_value cs op in_msg maxBet msg_value minBet
+    LESS	//  msg_value cs op in_msg maxBet _22
+    s5 s1 PUXC	//  msg_value cs op in_msg _22 msg_value maxBet
+    GREATER	//  msg_value cs op in_msg _22 _23
+    OR	//  msg_value cs op in_msg _24
+    100 THROWIF
+    s0 s2 XCHG	//  msg_value in_msg op cs
+    LDMSGADDR	//  msg_value in_msg op _111 _110
+    DROP	//  msg_value in_msg op s_addr
+    s0 s2 XCHG	//  msg_value s_addr op in_msg
+    64 LDU	//  msg_value s_addr op query_id in_msg
+    LTIME
+    ADDRAND
+    spinRoulette INLINECALLDICT	//  msg_value s_addr op query_id in_msg wonNumber
+    s3 PUSH	//  msg_value s_addr op query_id in_msg wonNumber op
+    10 EQINT	//  msg_value s_addr op query_id in_msg wonNumber _37
+    IFJMP:<{	//  msg_value s_addr op query_id in_msg wonNumber
+      s3 POP	//  msg_value s_addr wonNumber query_id in_msg
+      8 LDI	//  msg_value s_addr wonNumber query_id _115 _114
+      DROP	//  msg_value s_addr wonNumber query_id betAtNumber
+      DUP	//  msg_value s_addr wonNumber query_id betAtNumber betAtNumber
+      36 GTINT	//  msg_value s_addr wonNumber query_id betAtNumber _44
+      104 THROWIF
+      DUP	//  msg_value s_addr wonNumber query_id betAtNumber betAtNumber
+      -1 LESSINT	//  msg_value s_addr wonNumber query_id betAtNumber _48
+      104 THROWIF
+      s1 s2 XCHG	//  msg_value s_addr query_id wonNumber betAtNumber
+      EQUAL	//  msg_value s_addr query_id _50
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        35 MULCONST	//  query_id s_addr _52
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr op query_id in_msg wonNumber
+    NIP	//  msg_value s_addr op query_id wonNumber
+    s2 PUSH	//  msg_value s_addr op query_id wonNumber op
+    11 EQINT	//  msg_value s_addr op query_id wonNumber _55
+    IFJMP:<{	//  msg_value s_addr op query_id wonNumber
+      s2 POP	//  msg_value s_addr wonNumber query_id
+      OVER	//  msg_value s_addr wonNumber query_id wonNumber
+      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _56
+      s0 s2 XCHG	//  msg_value s_addr _56 query_id wonNumber
+      isOdd INLINECALLDICT	//  msg_value s_addr _56 query_id _57
+      s1 s2 XCHG	//  msg_value s_addr query_id _56 _57
+      AND	//  msg_value s_addr query_id _58
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr op query_id wonNumber
+    s2 PUSH	//  msg_value s_addr op query_id wonNumber op
+    12 EQINT	//  msg_value s_addr op query_id wonNumber _61
+    IFJMP:<{	//  msg_value s_addr op query_id wonNumber
+      s2 POP	//  msg_value s_addr wonNumber query_id
+      OVER	//  msg_value s_addr wonNumber query_id wonNumber
+      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _62
+      s0 s2 XCHG	//  msg_value s_addr _62 query_id wonNumber
+      isEven INLINECALLDICT	//  msg_value s_addr _62 query_id _63
+      s1 s2 XCHG	//  msg_value s_addr query_id _62 _63
+      AND	//  msg_value s_addr query_id _64
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr op query_id wonNumber
+    s2 PUSH	//  msg_value s_addr op query_id wonNumber op
+    13 EQINT	//  msg_value s_addr op query_id wonNumber _67
+    IFJMP:<{	//  msg_value s_addr op query_id wonNumber
+      s2 POP	//  msg_value s_addr wonNumber query_id
+      OVER	//  msg_value s_addr wonNumber query_id wonNumber
+      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _68
+      s0 s2 XCHG	//  msg_value s_addr _68 query_id wonNumber
+      isRed CALLDICT	//  msg_value s_addr _68 query_id _69
+      s1 s2 XCHG	//  msg_value s_addr query_id _68 _69
+      AND	//  msg_value s_addr query_id _70
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr op query_id wonNumber
+    s2 PUSH	//  msg_value s_addr op query_id wonNumber op
+    14 EQINT	//  msg_value s_addr op query_id wonNumber _73
+    IFJMP:<{	//  msg_value s_addr op query_id wonNumber
+      s2 POP	//  msg_value s_addr wonNumber query_id
+      OVER	//  msg_value s_addr wonNumber query_id wonNumber
+      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _74
+      s0 s2 XCHG	//  msg_value s_addr _74 query_id wonNumber
+      isBlack INLINECALLDICT	//  msg_value s_addr _74 query_id _75
+      s1 s2 XCHG	//  msg_value s_addr query_id _74 _75
+      AND	//  msg_value s_addr query_id _76
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr op query_id wonNumber
+    s2 PUSH	//  msg_value s_addr op query_id wonNumber op
+    15 EQINT	//  msg_value s_addr op query_id wonNumber _79
+    IFJMP:<{	//  msg_value s_addr op query_id wonNumber
+      s2 POP	//  msg_value s_addr wonNumber query_id
+      SWAP	//  msg_value s_addr query_id wonNumber
+      isDozen1 INLINECALLDICT	//  msg_value s_addr query_id _80
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        1 LSHIFT#	//  query_id s_addr _82
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr op query_id wonNumber
+    s2 PUSH	//  msg_value s_addr op query_id wonNumber op
+    16 EQINT	//  msg_value s_addr op query_id wonNumber _85
+    IFJMP:<{	//  msg_value s_addr op query_id wonNumber
+      s2 POP	//  msg_value s_addr wonNumber query_id
+      SWAP	//  msg_value s_addr query_id wonNumber
+      isDozen2 INLINECALLDICT	//  msg_value s_addr query_id _86
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        1 LSHIFT#	//  query_id s_addr _88
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr op query_id wonNumber
+    s2 PUSH	//  msg_value s_addr op query_id wonNumber op
+    17 EQINT	//  msg_value s_addr op query_id wonNumber _91
+    IFJMP:<{	//  msg_value s_addr op query_id wonNumber
+      s2 POP	//  msg_value s_addr wonNumber query_id
+      SWAP	//  msg_value s_addr query_id wonNumber
+      isDozen3 INLINECALLDICT	//  msg_value s_addr query_id _92
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        1 LSHIFT#	//  query_id s_addr _94
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr op query_id wonNumber
+    s2 PUSH	//  msg_value s_addr op query_id wonNumber op
+    18 EQINT	//  msg_value s_addr op query_id wonNumber _97
+    IFJMP:<{	//  msg_value s_addr op query_id wonNumber
+      s2 POP	//  msg_value s_addr wonNumber query_id
+      SWAP	//  msg_value s_addr query_id wonNumber
+      is1To18 INLINECALLDICT	//  msg_value s_addr query_id _98
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr op query_id wonNumber
+    s0 s2 XCHG	//  msg_value s_addr wonNumber query_id op
+    19 EQINT	//  msg_value s_addr wonNumber query_id _101
+    IFJMP:<{	//  msg_value s_addr wonNumber query_id
+      SWAP	//  msg_value s_addr query_id wonNumber
+      is19To36 INLINECALLDICT	//  msg_value s_addr query_id _102
+      IFJMP:<{	//  msg_value s_addr query_id
+        s0 s2 XCHG	//  query_id s_addr msg_value
+        processWin CALLDICT
+      }>	//  msg_value s_addr query_id
+      3 BLKDROP	// 
+    }>	//  msg_value s_addr wonNumber query_id
+    4 BLKDROP	// 
+  }>
+  recv_external PROC:<{
+    //  in_msg
+    9 PUSHPOW2	//  in_msg _3=512
+    LDSLICEX	//  signature in_msg
+    LDREF	//  signature _65 _64
+    DROP	//  signature _6
+    CTOS	//  signature cs
+    c4 PUSH	//  signature cs _10
+    CTOS	//  signature cs ds
+    32 LDU	//  signature cs _14 ds
+    256 LDU	//  signature cs _14 _69 _68
+    DROP	//  signature cs storedSeqno pubKey
+    s2 PUSH	//  signature cs storedSeqno pubKey cs
+    HASHSU	//  signature cs storedSeqno pubKey csHash
+    s0 s4 s4 XCHG3	//  storedSeqno cs csHash signature pubKey
+    CHKSIGNU	//  storedSeqno cs _23
+    101 THROWIFNOT
+    32 LDU	//  storedSeqno seqno cs
+    s1 s2 PUXC	//  cs seqno seqno storedSeqno
+    EQUAL	//  cs seqno _30
+    102 THROWIFNOT
+    ACCEPT
+    0 EQINT	//  cs _34
+    IFJMP:<{	//  cs
+      DROP	// 
+      updateSeqno CALLDICT
+    }>	//  cs
+    8 LDU	//  method cs
+    OVER	//  method cs method
+    1 EQINT	//  method cs _41
+    IF:<{	//  method cs
+      NIP	//  cs
+      LDMSGADDR	//  addr cs
+      LDGRAMS	//  addr _77 _76
+      DROP	//  addr amount
+      TUCK	//  amount addr amount
+      withdraw INLINECALLDICT
+      updateWithdrawnAmount CALLDICT
+    }>ELSE<{	//  method cs
+      SWAP	//  cs method
+      2 EQINT	//  cs _51
+      IF:<{	//  cs
+        LDGRAMS	//  minBet cs
+        LDGRAMS	//  minBet _81 _80
+        DROP	//  minBet maxBet
+        updateMinMaxBet CALLDICT
+      }>ELSE<{	//  cs
+        DROP	// 
+        103 THROW
+      }>
+    }>
+  }>
+  config PROC:<{
+    // 
+    loadData CALLDICT	//  _12 _13 _14 _15 _16 _17 _18 _19 _20 _21
+    6 BLKDROP
+    s2 POP
+    s2 POP	//  minBet maxBet
+    TRUE	//  minBet maxBet _11
+    -ROT	//  _11 minBet maxBet
+  }>
+  seqno PROC:<{
+    // 
+    c4 PUSH	//  _0
+    CTOS	//  _1
+    32 PLDU	//  _3
+  }>
+}END>c

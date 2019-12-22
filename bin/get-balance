@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+  echo "usage: <address>"
+  exit 1
+fi
+
+NG=`run-lite-client getaccount $1 | grep "account balance is" | awk '{print $4}' | rev | cut -c 3- | rev`
+from-nano $NG

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [[ $# < 3 ]] || [[ $# > 4 ]]; then
+	echo "usage: $0 <wallet-name> <to> <amount> [boc]"
+	exit 1
+fi
+
+WALLET_NAME=$1
+TO=$2
+AMOUNT=$3
+BOC=$4
+WALLET_ADDRESS=`wallet-address $WALLET_NAME`
+SEQNO=`get-seqno $WALLET_ADDRESS`
+
+args=(fift-run $TON_SRC/crypto/smartcont/wallet-v2.fif $TON/wallets/$WALLET_NAME $TO $SEQNO $AMOUNT)
+if [[ $# -eq 4 ]]; then
+	args+=(-B $BOC)
+fi
+
+"${args[@]}" || exit 1
+run-lite-client sendfile $PWD/wallet-query.boc
+rm $PWD/wallet-query.boc

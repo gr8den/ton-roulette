@@ -1,0 +1,73 @@
+"Asm.fif" include
+"utils.fif" include
+
+."Debug contract start" cr
+
+"new-contract.fif" include
+
+initData =: data
+
+// ] = SmartContractInfo;
+0x076ef1ea // magic:0x076ef1ea
+0 // actions:Integer
+0 // msgs_sent:Integer
+now // unixtime:Integer
+0 // block_lt:Integer
+0 // trans_lt:Integer
+now // rand_seed:Integer
+0 dictnew pair // balance_remaining:[Integer (Maybe Cell)]
+// myself:MsgAddressInt
+// global_config:(Maybe Cell)
+8 tuple 1 tuple =: ctx
+
+
+// -1 external message
+// 94671 DECLMETHOD seed
+// 104128 DECLMETHOD balance
+// 105222 DECLMETHOD test
+
+-1 =: contractFunctionCode
+
+// "configure-query.boc" file>B B>boc <s
+"withdraw-query.boc" file>B B>boc <s
+// b{1000100} s,
+// contractAddr addr,
+// 0 Gram,
+// b{00} s,
+256 u@+ swap drop
+277 256 - u@+ swap drop
+
+64 B@+ swap =: signature
+ref@ =: message
+
+contractFunctionCode -1 = {
+  <b
+    // init
+    //  contractSignature B,
+    // messageBody ref, // message cell
+
+    // configure
+    
+    signature B,
+    message ref,
+  b> <s
+
+  
+} if
+
+cr ."Args: " cr .s cr
+
+contractFunctionCode code <s data ctx runvmctx
+
+=: newData
+=: exitCode
+
+cr
+."data after: " cr newData <s csr.
+
+exitCode 0<> { ."VM exit with error " exitCode . cr 2 halt } if
+
+cr
+."stack after: " cr .s
+
+."Debug contract end" cr

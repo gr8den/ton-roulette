@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+	echo "usage: $0 <address>"
+	exit 1
+fi
+
+WALLET=$1
+SLEEP=5
+
+while true
+do
+	output=`run-lite-client getaccount $WALLET`
+
+	if [[ $output == *"account_active"* ]]; then
+		echo "$output"
+		exit 0
+	fi
+
+	echo "$WALLET Not init yet :("
+	echo "Sleep $SLEEP sec..."
+	sleep $SLEEP
+done

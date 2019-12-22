@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+	echo "usage: $0 <wallet-name>"
+	exit 1
+fi
+
+create-wallet $1 | grep "^Bounceable address" | awk '{print $6}'

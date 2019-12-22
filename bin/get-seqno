@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+	echo "usage: $0 <address>"
+	exit 1
+fi
+
+run-lite-client runmethod $1 seqno | grep "^result:" | awk '{print $3}'

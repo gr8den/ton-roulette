@@ -1,0 +1,5 @@
+*.boc
+contract.pk
+new-wallet.addr
+new-wallet.pk
+examples/

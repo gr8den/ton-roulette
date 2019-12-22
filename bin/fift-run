@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# fift -I$FIFTPATH/lib -s $@ || exit 1
+fift -s $@ || exit 1

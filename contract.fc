@@ -1,0 +1,505 @@
+
+;; ---- Roulette methods ----
+
+int randomInRange(int from, int to) inline {
+  return from + rand(to - from + 1);
+}
+
+int spinRoulette() inline {
+  return randomInRange(-1, 36); ;; American
+  ;; return randomInRange(0, 36); ;; European
+}
+
+int isZero(int n) inline {
+  return n <= 0;
+}
+
+int isNotZero(int n) inline {
+  return n > 0;
+}
+
+;; for n > 0
+int isOdd(int n) inline {
+  return (n % 2) == 1;
+}
+
+;; for n > 0
+int isEven(int n) inline {
+  return (n % 2) == 0;
+}
+
+;; for n > 0
+int isRed(int n) {
+  if( ((n >= 1) & (n <= 10)) | ((n >= 19) & (n <= 28)) ) {
+    return isOdd(n);
+  } else { ;; from 11 to 18 and 29 to 36
+    return isEven(n);
+  }
+}
+
+;; for n > 0
+int isBlack(int n) inline {
+  return ~ isRed(n);
+}
+
+int isDozen1(int n) inline {
+  return (n >= 1) & (n <= 12);
+}
+
+int isDozen2(int n) inline {
+  return (n >= 13) & (n <= 24);
+}
+
+int isDozen3(int n) inline {
+  return (n >= 25) & (n <= 36);
+}
+
+int is1To18(int n) inline {
+  return (n >= 1) & (n <= 18);
+}
+
+int is19To36(int n) inline {
+  return (n >= 19) & (n <= 36);
+}
+
+;; ---- Roulette methods ends ----
+
+
+
+;; ---- Store utils ----
+
+(int, int, int, int, int, int, int, int, int, int) loadData() {
+  var cs = get_data().begin_parse();
+  var res = (
+    cs~load_uint(32), ;; seqno
+    cs~load_uint(256), ;; pub key
+    cs~load_grams(), ;; min bet
+    cs~load_grams(), ;; max bet
+    cs~load_uint(64), ;; played games
+    cs~load_uint(64), ;; won games
+    cs~load_uint(64), ;; lost games
+    cs~load_grams(), ;; won amount
+    cs~load_grams(), ;; lost amount
+    cs~load_grams() ;; withdrawn amount
+  );
+  cs.end_parse();
+  return res;
+}
+
+() storeData(
+  int seqno,
+  int pubKey,
+  int minBet,
+  int maxBet,
+  int playedGames,
+  int wonGames,
+  int lostGames,
+  int wonAmount,
+  int lostAmount,
+  int withdrawnAmount
+) impure {
+  set_data(
+    begin_cell()
+    .store_uint(seqno, 32)
+    .store_uint(pubKey, 256)
+    .store_grams(minBet)
+    .store_grams(maxBet)
+    .store_uint(playedGames, 64)
+    .store_uint(wonGames, 64)
+    .store_uint(lostGames, 64)
+    .store_grams(wonAmount)
+    .store_grams(lostAmount)
+    .store_grams(withdrawnAmount)
+    .end_cell()
+  );
+}
+
+(int, int) loadMinMaxBet() {
+  var cs = get_data()
+    .begin_parse()
+    .skip_bits(32)  ;; seqno
+    .skip_bits(256); ;; pub key
+
+  return (cs~load_grams(), cs~load_grams());
+}
+
+() updateMinMaxBet(int newMinBet, int newMaxBet) impure {
+  (
+    int seqno,
+    int pubKey,
+    int minBet,
+    int maxBet,
+    int playedGames,
+    int wonGames,
+    int lostGames,
+    int wonAmount,
+    int lostAmount,
+    int withdrawnAmount
+  ) = loadData();
+
+  minBet = newMinBet;
+  maxBet = newMaxBet;
+  seqno += 1;
+
+  storeData(
+    seqno,
+    pubKey,
+    minBet,
+    maxBet,
+    playedGames,
+    wonGames,
+    lostGames,
+    wonAmount,
+    lostAmount,
+    withdrawnAmount
+  );
+}
+
+() updateWithdrawnAmount(int withdrawn) impure {
+  (
+    int seqno,
+    int pubKey,
+    int minBet,
+    int maxBet,
+    int playedGames,
+    int wonGames,
+    int lostGames,
+    int wonAmount,
+    int lostAmount,
+    int withdrawnAmount
+  ) = loadData();
+
+  withdrawnAmount += withdrawn;
+  seqno += 1;
+
+  storeData(
+    seqno,
+    pubKey,
+    minBet,
+    maxBet,
+    playedGames,
+    wonGames,
+    lostGames,
+    wonAmount,
+    lostAmount,
+    withdrawnAmount
+  );
+}
+
+() updateStats(int isWon, int value) impure {
+  (
+    int seqno,
+    int pubKey,
+    int minBet,
+    int maxBet,
+    int playedGames,
+    int wonGames,
+    int lostGames,
+    int wonAmount,
+    int lostAmount,
+    int withdrawnAmount
+  ) = loadData();
+
+  playedGames += 1;
+  if(isWon) {
+    wonGames += 1;
+    wonAmount += value;
+  } else {
+    lostGames += 1;
+    lostAmount += value;
+  }
+
+  storeData(
+    seqno,
+    pubKey,
+    minBet,
+    maxBet,
+    playedGames,
+    wonGames,
+    lostGames,
+    wonAmount,
+    lostAmount,
+    withdrawnAmount
+  );
+}
+
+() updateSeqno() impure {
+  (
+    int seqno,
+    int pubKey,
+    int minBet,
+    int maxBet,
+    int playedGames,
+    int wonGames,
+    int lostGames,
+    int wonAmount,
+    int lostAmount,
+    int withdrawnAmount
+  ) = loadData();
+
+  seqno += 1;
+
+  storeData(
+    seqno,
+    pubKey,
+    minBet,
+    maxBet,
+    playedGames,
+    wonGames,
+    lostGames,
+    wonAmount,
+    lostAmount,
+    withdrawnAmount
+  );
+}
+
+;; ---- Store utils end ----
+
+
+
+;; ---- Smart contract main code ----
+
+() withdraw(slice addr, int amount) impure inline {
+  send_raw_message(
+    begin_cell()
+      ;; int_msg_info$0 ihr_disabled:Bool(1) bounce:Bool(1) bounced:Bool(0) src:MsgAddress(addr_none$00) -> 011000 -> 0x18
+      .store_uint(0x18, 6)
+      .store_slice(addr)
+      .store_grams(amount)
+      .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+      .store_uint(0x0, 32) ;; just money transfer
+    .end_cell(),
+    
+    ;; msg mode
+    ;; +1 - pay fees
+    ;; +2 - ignore errors
+    1 + 2
+  );
+}
+
+() processWin(int query_id, slice s_addr, int prize) impure {  
+  send_raw_message(
+    begin_cell()
+      ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress(addr_none$00) -> 011000 -> 0x18
+      .store_uint(0x18, 6)
+      .store_slice(s_addr)
+      .store_grams(prize)
+      .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+      .store_uint(0xff000001, 32)
+      .store_uint(query_id, 64)
+    .end_cell(),
+    
+    ;; msg mode
+    ;; +64 - return received amount + add prize
+    ;; +2 - ignore errors (?)
+    64 + 2
+  );
+
+  ;; updateStats(true, prize);
+}
+
+;; () processLoss(int value) impure {
+;;   updateStats(false, value);
+;; }
+
+() recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
+  var cs = in_msg_cell.begin_parse();
+  var flags = cs~load_uint(4);  ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
+  if(flags & 1) {
+    ;; ignore all bounced messages
+    return ();
+  }
+
+  if( in_msg.slice_empty?() ) {
+    ;; inbound message has empty body - just fill balance for prizes
+    return ();
+  }
+
+  int op = in_msg~load_uint(32);
+  if(op == 0) {
+    ;; simple transfer with comment - just fill balance for prizes
+    return ();
+  }
+
+  (int minBet, int maxBet) = loadMinMaxBet();
+  ;; send money back
+  throw_if(100, (msg_value < minBet) | (msg_value > maxBet));
+
+  var s_addr = cs~load_msg_addr();
+  int query_id = in_msg~load_uint(64);
+
+  randomize_lt();
+  int wonNumber = spinRoulette();
+
+  if(op == 10) { ;; straight
+    int betAtNumber = in_msg~load_int(8);
+    
+    throw_if(104, betAtNumber > 36);
+    throw_if(104, betAtNumber < -1); ;; American
+    ;; throw_if(104, betAtNumber < 0); ;; European
+
+    if(wonNumber == betAtNumber) {
+      return processWin(query_id, s_addr, msg_value * 35);
+    } else {
+      ;; return processLoss(msg_value);
+      return ();
+    }
+  } elseif(op == 11) { ;; odd
+    if(isNotZero(wonNumber) & isOdd(wonNumber)) {
+      return processWin(query_id, s_addr, msg_value);
+    } else {
+      return ();
+    }
+  } elseif(op == 12) { ;; even
+    if(isNotZero(wonNumber) & isEven(wonNumber)) {
+      return processWin(query_id, s_addr, msg_value);
+    } else {
+      return ();
+    }
+  } elseif(op == 13) { ;; red
+    if(isNotZero(wonNumber) & isRed(wonNumber)) {
+      return processWin(query_id, s_addr, msg_value);
+    } else {
+      return ();
+    }
+  } elseif(op == 14) { ;; black
+    if(isNotZero(wonNumber) & isBlack(wonNumber)) {
+      return processWin(query_id, s_addr, msg_value);
+    } else {
+      return ();
+    }
+  } elseif(op == 15) { ;; 1st dozen
+    if( isDozen1(wonNumber) ) {
+      return processWin(query_id, s_addr, msg_value * 2);
+    } else {
+      return ();
+    }
+  } elseif(op == 16) { ;; 2st dozen
+    if( isDozen2(wonNumber) ) {
+      return processWin(query_id, s_addr, msg_value * 2);
+    } else {
+      return ();
+    }
+  } elseif(op == 17) { ;; 3st dozen
+    if( isDozen3(wonNumber) ) {
+      return processWin(query_id, s_addr, msg_value * 2);
+    } else {
+      return ();
+    }
+  } elseif(op == 18) { ;; 1 to 18
+    if( is1To18(wonNumber) ) {
+      return processWin(query_id, s_addr, msg_value);
+    } else {
+      return ();
+    }
+  } elseif(op == 19) { ;; 19 to 36
+    if( is19To36(wonNumber) ) {
+      return processWin(query_id, s_addr, msg_value);
+    } else {
+      return ();
+    }
+  } else {
+    ;; Additional bet types:
+    ;; Row (Double zero only)
+    ;; Split
+    ;; Street
+    ;; Corner
+    ;; Six line
+    ;; Top line or Basket
+    ;; 1st, 2nd, 3rd column
+
+    ;; unknown answer, ignore
+    return ();
+  }
+}
+
+() recv_external(slice in_msg) impure {
+  slice signature = in_msg~load_bits(512);
+  var cs = in_msg~load_ref().begin_parse();
+
+  slice ds = get_data().begin_parse();
+  (int storedSeqno, int pubKey) = (ds~load_uint(32), ds~load_uint(256));
+
+  int csHash = slice_hash(cs);
+  throw_unless(101, check_signature(csHash, signature, pubKey));
+
+  int seqno = cs~load_uint(32);
+  throw_unless(102, seqno == storedSeqno);
+
+  accept_message();
+
+  if(seqno == 0) {
+    updateSeqno();
+    return ();
+  }
+  
+  int method = cs~load_uint(8);
+  if(method == 1) { ;; withdraw
+    slice addr = cs~load_msg_addr();
+    int amount = cs~load_grams();
+
+    withdraw(addr, amount);
+    updateWithdrawnAmount(amount);
+  } elseif(method == 2) { ;; set min & max bet
+    int minBet = cs~load_grams();
+    int maxBet = cs~load_grams();
+    updateMinMaxBet(minBet, maxBet);
+  } else { ;; invalid method
+    throw_if(103, true);
+  }
+}
+
+;; ---- Smart contract main code end ----
+
+;; ---- Getters ----
+
+(int, int, int) config() method_id {
+  (
+    int seqno,
+    int pubKey,
+    int minBet,
+    int maxBet,
+    int playedGames,
+    int wonGames,
+    int lostGames,
+    int wonAmount,
+    int lostAmount,
+    int withdrawnAmount
+  ) = loadData();
+
+  return (
+    true, ;; isDoubleZero(),
+    minBet,
+    maxBet
+  );
+}
+
+;; (int, int, int, int, int, int) stats() method_id {
+;;   (
+;;     int seqno,
+;;     int pubKey,
+;;     int minBet,
+;;     int maxBet,
+;;     int playedGames,
+;;     int wonGames,
+;;     int lostGames,
+;;     int wonAmount,
+;;     int lostAmount,
+;;     int withdrawnAmount
+;;   ) = loadData();
+
+;;   return (
+;;     playedGames,
+;;     wonGames,
+;;     lostGames,
+;;     wonAmount,
+;;     lostAmount,
+;;     withdrawnAmount
+;;   );
+;; }
+
+int seqno() method_id {
+  return get_data().begin_parse().preload_uint(32);
+}
+
+;; ---- Getters end ----

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+	echo "usage: $0 <address>"
+	exit 1
+fi
+
+WALLET=$1
+SLEEP=5
+
+while true
+do
+	output=`run-lite-client getaccount $WALLET`
+
+	if [[ $output != *"account state is empty"* ]]; then
+		echo "$output"
+		exit 0
+	fi
+
+	#echo "$output"
+	echo "Not create yet :("
+	echo "Sleep $SLEEP sec..."
+	sleep $SLEEP
+done

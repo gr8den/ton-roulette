@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+	echo "usage: $0 <wallet-name>"
+	exit 1
+fi
+
+TARGET="$TON/wallets/$1"
+
+fift -I$TON_SRC/crypto/fift/lib -s $TON_SRC/crypto/smartcont/new-wallet-v2.fif 0 $TARGET || exit 2

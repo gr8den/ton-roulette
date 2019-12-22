@@ -1,0 +1,5 @@
+// (slice) -> <workchain 8 bit int> <256 uint addr> <slice>
+{
+  8 i@+
+  256 u@+
+} : addr@+

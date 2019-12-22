@@ -1,0 +1,77 @@
+#!/usr/bin/env fift -s
+
+"TonUtil.fif" include
+"Asm.fif" include
+
+0 =: workchain
+
+// creating keys
+"contract" =: file-base
+file-base +".pk" load-generate-keypair
+=: contract_pk
+=: contract_pub
+
+// InitData
+<b
+  0 32 u, // seqno
+  contract_pub B, // pub key
+  1 Gram, // min bet
+  1000 Gram, // max bet
+  0 64 u, // playedGames
+  0 64 u, // wonGames
+  0 64 u, // lostGames
+  0 Gram, // wonAmount
+  0 Gram, // lostAmount
+  0 Gram, // withdrawnAmount
+b> =: initData
+
+"contract.fif" include =: code
+
+null =: libs
+
+// (see block.tlb StateInit)
+<b
+  b{0011} s, // ??? - split_depth:(Maybe (## 5)) special:(Maybe TickTock)
+  code ref,
+  initData ref,
+  libs dict,
+b> =: stateInit
+
+// ."StateInit: " stateInit <s cr csr. cr
+
+stateInit hashu =: stateInitHash
+workchain stateInitHash 2constant contract_addr
+
+contract_addr .addr cr
+."Non-bounceable address (for init): " contract_addr 7 .Addr cr
+."Bounceable address: " contract_addr 6 .Addr cr
+
+<b
+  0 32 u, // seqno
+b> =: messageBody
+messageBody hashu =: messageBodyHash
+messageBodyHash contract_pk ed25519_sign_uint =: contractSignature
+
+// external message for init
+<b
+  b{1000100} s, // b{1000100} -> 0x44 (7 bits magic / flags?)
+  contract_addr addr, // 8-bit int workchain, 256 uint address (addr,)
+  b{000010} s, // b{000010} - 6 bits ???
+  stateInit <s s, // StateInit Cell
+  b{0} s, // b{0} - 1 bit ?
+
+  // Body start
+  contractSignature B,
+  messageBody ref, // message cell
+b> =: externalMessage
+
+"new-contract-query.boc" =: bocFile 
+
+// flag 2 - add crc32-c
+externalMessage 2 boc+>B bocFile B>file
+
+."Creation query saved to " bocFile type cr
+
+."Private key of contract saved to " 
+file-base +".pk" type
+.". It used for changing config & withdraw" cr

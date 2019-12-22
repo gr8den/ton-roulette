@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+	echo "usage: $0 <address>"
+	exit 1
+fi
+
+WALLET=$1
+SLEEP=10
+
+while true
+do
+	run-lite-client last
+	run-lite-client getaccount $WALLET
+	echo "Sleep $SLEEP sec..."
+	sleep $SLEEP
+done

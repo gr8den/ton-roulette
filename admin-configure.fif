@@ -1,0 +1,52 @@
+#!/usr/bin/env fift -s
+
+"TonUtil.fif" include
+
+{
+  ."Script for configuring min & max bet" cr
+  ."usage: "
+  @' $0 type
+  ." <minBet> <maxBet> <seqno> <addr> [contract.pk]" cr
+  1 halt
+} : usage
+
+@' $# 4 = @' $# 5 = or ' usage ifnot
+
+$1 $>GR =: minBet
+$2 $>GR =: maxBet
+$3 parse-int =: seqno
+$4 parse-smc-addr drop 2=: contractAddr
+
+$# 5 = { 5 $() } { "contract.pk" } cond  =: pkFile
+pkFile load-keypair swap drop =: privKey
+
+"configure-query.boc" =: bocFile
+
+contractAddr .addr cr
+."Seqno: " seqno . cr
+."Set min bet to: " minBet .GR cr
+."Set max bet to: " maxBet .GR cr
+
+<b
+  seqno 32 u,
+  2 8 u, // set min & max bet method
+  minBet Gram,
+  maxBet Gram,
+b> =: message
+message hashu privKey ed25519_sign_uint =: signature
+
+<b
+  b{1000100} s,
+  contractAddr addr,
+  0 Gram,
+  b{00} s,
+
+  signature B,
+  message ref,
+b> =: externalMessage
+
+// flag 2 - add crc32-c
+externalMessage 2 boc+>B
+bocFile B>file
+
+."New configuration query saved to " bocFile type cr

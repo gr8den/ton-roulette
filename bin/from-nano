@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+const [, program, ...args] = process.argv;
+
+if(args.length !== 1) {
+  console.log('usage:', program, 'nanoGrams');
+  process.exit(1);
+}
+
+let grams = args[0] * 0.000000001;
+console.log(grams);

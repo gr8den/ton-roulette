@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+	echo "usage: $0 <wallet-name>"
+	exit 1
+fi
+
+WALLET=`wallet-address $1`
+get-balance $WALLET

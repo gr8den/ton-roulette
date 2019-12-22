@@ -1,0 +1,5 @@
+#!/bin/bash
+
+name="$1"
+rm -f $name.fif
+func -P -S -R -O 2 -o $name.fif $TON_SRC/crypto/smartcont/stdlib.fc $name.fc || exit 1

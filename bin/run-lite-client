@@ -1,0 +1,7 @@
+#!/bin/sh
+
+#lite-client -C <global-config-file> -c 'getconfig 1'
+# $TON/ton-db
+
+ARGS="$@"
+$TON_BUILD/lite-client/lite-client -C $TON/ton-lite-client-test1.config.json -c "$ARGS" 2>&1
