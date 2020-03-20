@@ -2,8 +2,14 @@
 
 TON Smart Contract for American Roulette (can be easy converted to European)
 
+## Web client
+<!-- ![Screenshot](web-client.png) -->
+<img src="web-client.png" width="500">
+
+https://ton-roulette.org/
+
 ## Smart contract address in testnet2
-`kQCEZbJF3x0xF2d9T1TLfR4Y0nB8jSiQKH6dc1J-WjKIGcLk`
+`kQA_IZq2K78y4gtYwCBoi3ifz7ozMho45Gz2_0sBlibeU5db`
 
 Min bet: 1 GRAM
 
@@ -28,7 +34,7 @@ Max bet: 100.0 GRAM
 
 3. Create money send order with play query
 
-    `./wallet-v2/wallet-v2.fif new-wallet kQCEZbJF3x0xF2d9T1TLfR4Y0nB8jSiQKH6dc1J-WjKIGcLk <seqno> <amount> -B play-query.boc`
+    `./wallet-v2/wallet-v2.fif new-wallet kQA_IZq2K78y4gtYwCBoi3ifz7ozMho45Gz2_0sBlibeU5db <seqno> <amount> -B play-query.boc`
 
 4. Send `wallet-query.boc` using lite-client
 
