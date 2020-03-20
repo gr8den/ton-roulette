@@ -277,7 +277,7 @@ int is19To36(int n) inline {
   );
 }
 
-() processWin(int query_id, slice s_addr, int prize) impure {  
+() processWin(int query_id, slice s_addr, int prize, int wonNumber) impure {  
   send_raw_message(
     begin_cell()
       ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress(addr_none$00) -> 011000 -> 0x18
@@ -287,6 +287,7 @@ int is19To36(int n) inline {
       .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
       .store_uint(0xff000001, 32)
       .store_uint(query_id, 64)
+      .store_int(wonNumber, 8)
     .end_cell(),
     
     ;; msg mode
@@ -298,9 +299,28 @@ int is19To36(int n) inline {
   ;; updateStats(true, prize);
 }
 
-;; () processLoss(int value) impure {
-;;   updateStats(false, value);
-;; }
+() processLoss(int query_id, slice s_addr, int value, int wonNumber) impure {
+  send_raw_message(
+    begin_cell()
+      ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress(addr_none$00) -> 011000 -> 0x18
+      .store_uint(0x18, 6)
+      .store_slice(s_addr)
+      .store_grams(0)
+      .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+      .store_uint(0xff000002, 32)
+      .store_uint(query_id, 64)
+      .store_int(wonNumber, 8)
+    .end_cell(),
+    
+    ;; msg mode
+    ;; +2 - ignore errors
+    ;; +1 - pay fees
+    1
+  );
+
+  ;; updateStats(false, value);
+  return ();
+}
 
 () recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
   var cs = in_msg_cell.begin_parse();
@@ -339,64 +359,63 @@ int is19To36(int n) inline {
     ;; throw_if(104, betAtNumber < 0); ;; European
 
     if(wonNumber == betAtNumber) {
-      return processWin(query_id, s_addr, msg_value * 35);
+      return processWin(query_id, s_addr, msg_value * 35, wonNumber);
     } else {
-      ;; return processLoss(msg_value);
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } elseif(op == 11) { ;; odd
     if(isNotZero(wonNumber) & isOdd(wonNumber)) {
-      return processWin(query_id, s_addr, msg_value);
+      return processWin(query_id, s_addr, msg_value, wonNumber);
     } else {
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } elseif(op == 12) { ;; even
     if(isNotZero(wonNumber) & isEven(wonNumber)) {
-      return processWin(query_id, s_addr, msg_value);
+      return processWin(query_id, s_addr, msg_value, wonNumber);
     } else {
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } elseif(op == 13) { ;; red
     if(isNotZero(wonNumber) & isRed(wonNumber)) {
-      return processWin(query_id, s_addr, msg_value);
+      return processWin(query_id, s_addr, msg_value, wonNumber);
     } else {
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } elseif(op == 14) { ;; black
     if(isNotZero(wonNumber) & isBlack(wonNumber)) {
-      return processWin(query_id, s_addr, msg_value);
+      return processWin(query_id, s_addr, msg_value, wonNumber);
     } else {
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } elseif(op == 15) { ;; 1st dozen
     if( isDozen1(wonNumber) ) {
-      return processWin(query_id, s_addr, msg_value * 2);
+      return processWin(query_id, s_addr, msg_value * 2, wonNumber);
     } else {
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } elseif(op == 16) { ;; 2st dozen
     if( isDozen2(wonNumber) ) {
-      return processWin(query_id, s_addr, msg_value * 2);
+      return processWin(query_id, s_addr, msg_value * 2, wonNumber);
     } else {
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } elseif(op == 17) { ;; 3st dozen
     if( isDozen3(wonNumber) ) {
-      return processWin(query_id, s_addr, msg_value * 2);
+      return processWin(query_id, s_addr, msg_value * 2, wonNumber);
     } else {
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } elseif(op == 18) { ;; 1 to 18
     if( is1To18(wonNumber) ) {
-      return processWin(query_id, s_addr, msg_value);
+      return processWin(query_id, s_addr, msg_value, wonNumber);
     } else {
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } elseif(op == 19) { ;; 19 to 36
     if( is19To36(wonNumber) ) {
-      return processWin(query_id, s_addr, msg_value);
+      return processWin(query_id, s_addr, msg_value, wonNumber);
     } else {
-      return ();
+      return processLoss(query_id, s_addr, msg_value, wonNumber);
     }
   } else {
     ;; Additional bet types:

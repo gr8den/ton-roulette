@@ -22,6 +22,7 @@ PROGRAM{
   DECLPROC updateSeqno
   DECLPROC withdraw
   DECLPROC processWin
+  DECLPROC processLoss
   DECLPROC recv_internal
   DECLPROC recv_external
   103021 DECLMETHOD config
@@ -139,8 +140,8 @@ PROGRAM{
   }>
   storeData PROC:<{
     //  seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount
-    NEWC	//  seqno pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount withdrawnAmount _10
-    s1 s10 XCHG	//  withdrawnAmount pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount seqno _10
+    s0 s9 XCHG
+    NEWC	//  withdrawnAmount pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount seqno _10
     32 STU	//  withdrawnAmount pubKey minBet maxBet playedGames wonGames lostGames wonAmount lostAmount _12
     s1 s8 XCHG	//  withdrawnAmount lostAmount minBet maxBet playedGames wonGames lostGames wonAmount pubKey _12
     256 STU	//  withdrawnAmount lostAmount minBet maxBet playedGames wonGames lostGames wonAmount _14
@@ -249,22 +250,47 @@ PROGRAM{
     SENDRAWMSG
   }>
   processWin PROC:<{
-    //  query_id s_addr prize
-    4278190081 PUSHINT	//  query_id s_addr prize _3=4278190081
-    0 PUSHINT	//  query_id s_addr prize _3=4278190081 _4=0
-    24 PUSHINT	//  query_id s_addr prize _3=4278190081 _4=0 _5=24
-    NEWC	//  query_id s_addr prize _3=4278190081 _4=0 _5=24 _6
-    6 STU	//  query_id s_addr prize _3=4278190081 _4=0 _8
-    s0 s4 XCHG2	//  query_id _4=0 prize _3=4278190081 _8 s_addr
-    STSLICER	//  query_id _4=0 prize _3=4278190081 _9
-    ROT	//  query_id _4=0 _3=4278190081 _9 prize
-    STGRAMS	//  query_id _4=0 _3=4278190081 _10
-    s1 s2 XCHG	//  query_id _3=4278190081 _4=0 _10
-    107 STU	//  query_id _3=4278190081 _24
-    32 STU	//  query_id _26
-    64 STU	//  _28
-    ENDC	//  _29
-    66 PUSHINT	//  _29 _32
+    //  query_id s_addr prize wonNumber
+    4278190081 PUSHINT	//  query_id s_addr prize wonNumber _4=4278190081
+    0 PUSHINT	//  query_id s_addr prize wonNumber _4=4278190081 _5=0
+    24 PUSHINT	//  query_id s_addr prize wonNumber _4=4278190081 _5=0 _6=24
+    NEWC	//  query_id s_addr prize wonNumber _4=4278190081 _5=0 _6=24 _7
+    6 STU	//  query_id s_addr prize wonNumber _4=4278190081 _5=0 _9
+    s0 s5 XCHG2	//  query_id _5=0 prize wonNumber _4=4278190081 _9 s_addr
+    STSLICER	//  query_id _5=0 prize wonNumber _4=4278190081 _10
+    s0 s3 XCHG2	//  query_id _5=0 _4=4278190081 wonNumber _10 prize
+    STGRAMS	//  query_id _5=0 _4=4278190081 wonNumber _11
+    s1 s3 XCHG	//  query_id wonNumber _4=4278190081 _5=0 _11
+    107 STU	//  query_id wonNumber _4=4278190081 _25
+    32 STU	//  query_id wonNumber _27
+    s1 s2 XCHG	//  wonNumber query_id _27
+    64 STU	//  wonNumber _29
+    8 STI	//  _31
+    ENDC	//  _32
+    66 PUSHINT	//  _32 _35
+    SENDRAWMSG
+  }>
+  processLoss PROC:<{
+    //  query_id s_addr value wonNumber
+    NIP	//  query_id s_addr wonNumber
+    4278190082 PUSHINT	//  query_id s_addr wonNumber _4=4278190082
+    0 PUSHINT	//  query_id s_addr wonNumber _4=4278190082 _5=0
+    24 PUSHINT	//  query_id s_addr wonNumber _4=4278190082 _5=0 _6=24
+    NEWC	//  query_id s_addr wonNumber _4=4278190082 _5=0 _6=24 _7
+    6 STU	//  query_id s_addr wonNumber _4=4278190082 _5=0 _9
+    s0 s4 XCHG2	//  query_id _5=0 wonNumber _4=4278190082 _9 s_addr
+    STSLICER	//  query_id _5=0 wonNumber _4=4278190082 _10
+    s3 PUSH	//  query_id _5=0 wonNumber _4=4278190082 _10 _11=0
+    STGRAMS	//  query_id _5=0 wonNumber _4=4278190082 _12
+    s1 s3 XCHG	//  query_id _4=4278190082 wonNumber _5=0 _12
+    107 STU	//  query_id _4=4278190082 wonNumber _26
+    s1 s2 XCHG	//  query_id wonNumber _4=4278190082 _26
+    32 STU	//  query_id wonNumber _28
+    s1 s2 XCHG	//  wonNumber query_id _28
+    64 STU	//  wonNumber _30
+    8 STI	//  _32
+    ENDC	//  _33
+    1 PUSHINT	//  _33 _34=1
     SENDRAWMSG
   }>
   recv_internal PROC:<{
@@ -298,7 +324,7 @@ PROGRAM{
     OR	//  msg_value cs op in_msg _24
     100 THROWIF
     s0 s2 XCHG	//  msg_value in_msg op cs
-    LDMSGADDR	//  msg_value in_msg op _111 _110
+    LDMSGADDR	//  msg_value in_msg op _121 _120
     DROP	//  msg_value in_msg op s_addr
     s0 s2 XCHG	//  msg_value s_addr op in_msg
     64 LDU	//  msg_value s_addr op query_id in_msg
@@ -309,7 +335,7 @@ PROGRAM{
     10 EQINT	//  msg_value s_addr op query_id in_msg wonNumber _37
     IFJMP:<{	//  msg_value s_addr op query_id in_msg wonNumber
       s3 POP	//  msg_value s_addr wonNumber query_id in_msg
-      8 LDI	//  msg_value s_addr wonNumber query_id _115 _114
+      8 LDI	//  msg_value s_addr wonNumber query_id _125 _124
       DROP	//  msg_value s_addr wonNumber query_id betAtNumber
       DUP	//  msg_value s_addr wonNumber query_id betAtNumber betAtNumber
       36 GTINT	//  msg_value s_addr wonNumber query_id betAtNumber _44
@@ -317,141 +343,151 @@ PROGRAM{
       DUP	//  msg_value s_addr wonNumber query_id betAtNumber betAtNumber
       -1 LESSINT	//  msg_value s_addr wonNumber query_id betAtNumber _48
       104 THROWIF
-      s1 s2 XCHG	//  msg_value s_addr query_id wonNumber betAtNumber
-      EQUAL	//  msg_value s_addr query_id _50
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
-        35 MULCONST	//  query_id s_addr _52
+      s2 s(-1) PUXC	//  msg_value s_addr wonNumber query_id wonNumber betAtNumber
+      EQUAL	//  msg_value s_addr wonNumber query_id _50
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s0 s3 XCHG	//  query_id s_addr wonNumber msg_value
+        35 MULCONST	//  query_id s_addr wonNumber _52
+        SWAP	//  query_id s_addr _52 wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr op query_id in_msg wonNumber
     NIP	//  msg_value s_addr op query_id wonNumber
     s2 PUSH	//  msg_value s_addr op query_id wonNumber op
-    11 EQINT	//  msg_value s_addr op query_id wonNumber _55
+    11 EQINT	//  msg_value s_addr op query_id wonNumber _56
     IFJMP:<{	//  msg_value s_addr op query_id wonNumber
       s2 POP	//  msg_value s_addr wonNumber query_id
       OVER	//  msg_value s_addr wonNumber query_id wonNumber
-      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _56
-      s0 s2 XCHG	//  msg_value s_addr _56 query_id wonNumber
-      isOdd INLINECALLDICT	//  msg_value s_addr _56 query_id _57
-      s1 s2 XCHG	//  msg_value s_addr query_id _56 _57
-      AND	//  msg_value s_addr query_id _58
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
+      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _57
+      s2 PUSH	//  msg_value s_addr wonNumber query_id _57 wonNumber
+      isOdd INLINECALLDICT	//  msg_value s_addr wonNumber query_id _57 _58
+      AND	//  msg_value s_addr wonNumber query_id _59
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr op query_id wonNumber
     s2 PUSH	//  msg_value s_addr op query_id wonNumber op
-    12 EQINT	//  msg_value s_addr op query_id wonNumber _61
+    12 EQINT	//  msg_value s_addr op query_id wonNumber _63
     IFJMP:<{	//  msg_value s_addr op query_id wonNumber
       s2 POP	//  msg_value s_addr wonNumber query_id
       OVER	//  msg_value s_addr wonNumber query_id wonNumber
-      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _62
-      s0 s2 XCHG	//  msg_value s_addr _62 query_id wonNumber
-      isEven INLINECALLDICT	//  msg_value s_addr _62 query_id _63
-      s1 s2 XCHG	//  msg_value s_addr query_id _62 _63
-      AND	//  msg_value s_addr query_id _64
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
+      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _64
+      s2 PUSH	//  msg_value s_addr wonNumber query_id _64 wonNumber
+      isEven INLINECALLDICT	//  msg_value s_addr wonNumber query_id _64 _65
+      AND	//  msg_value s_addr wonNumber query_id _66
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr op query_id wonNumber
     s2 PUSH	//  msg_value s_addr op query_id wonNumber op
-    13 EQINT	//  msg_value s_addr op query_id wonNumber _67
+    13 EQINT	//  msg_value s_addr op query_id wonNumber _70
     IFJMP:<{	//  msg_value s_addr op query_id wonNumber
       s2 POP	//  msg_value s_addr wonNumber query_id
       OVER	//  msg_value s_addr wonNumber query_id wonNumber
-      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _68
-      s0 s2 XCHG	//  msg_value s_addr _68 query_id wonNumber
-      isRed CALLDICT	//  msg_value s_addr _68 query_id _69
-      s1 s2 XCHG	//  msg_value s_addr query_id _68 _69
-      AND	//  msg_value s_addr query_id _70
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
+      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _71
+      s2 PUSH	//  msg_value s_addr wonNumber query_id _71 wonNumber
+      isRed CALLDICT	//  msg_value s_addr wonNumber query_id _71 _72
+      AND	//  msg_value s_addr wonNumber query_id _73
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr op query_id wonNumber
     s2 PUSH	//  msg_value s_addr op query_id wonNumber op
-    14 EQINT	//  msg_value s_addr op query_id wonNumber _73
+    14 EQINT	//  msg_value s_addr op query_id wonNumber _77
     IFJMP:<{	//  msg_value s_addr op query_id wonNumber
       s2 POP	//  msg_value s_addr wonNumber query_id
       OVER	//  msg_value s_addr wonNumber query_id wonNumber
-      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _74
-      s0 s2 XCHG	//  msg_value s_addr _74 query_id wonNumber
-      isBlack INLINECALLDICT	//  msg_value s_addr _74 query_id _75
-      s1 s2 XCHG	//  msg_value s_addr query_id _74 _75
-      AND	//  msg_value s_addr query_id _76
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
+      isNotZero INLINECALLDICT	//  msg_value s_addr wonNumber query_id _78
+      s2 PUSH	//  msg_value s_addr wonNumber query_id _78 wonNumber
+      isBlack INLINECALLDICT	//  msg_value s_addr wonNumber query_id _78 _79
+      AND	//  msg_value s_addr wonNumber query_id _80
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr op query_id wonNumber
     s2 PUSH	//  msg_value s_addr op query_id wonNumber op
-    15 EQINT	//  msg_value s_addr op query_id wonNumber _79
+    15 EQINT	//  msg_value s_addr op query_id wonNumber _84
     IFJMP:<{	//  msg_value s_addr op query_id wonNumber
       s2 POP	//  msg_value s_addr wonNumber query_id
-      SWAP	//  msg_value s_addr query_id wonNumber
-      isDozen1 INLINECALLDICT	//  msg_value s_addr query_id _80
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
-        1 LSHIFT#	//  query_id s_addr _82
+      OVER	//  msg_value s_addr wonNumber query_id wonNumber
+      isDozen1 INLINECALLDICT	//  msg_value s_addr wonNumber query_id _85
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s0 s3 XCHG	//  query_id s_addr wonNumber msg_value
+        1 LSHIFT#	//  query_id s_addr wonNumber _87
+        SWAP	//  query_id s_addr _87 wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr op query_id wonNumber
     s2 PUSH	//  msg_value s_addr op query_id wonNumber op
-    16 EQINT	//  msg_value s_addr op query_id wonNumber _85
+    16 EQINT	//  msg_value s_addr op query_id wonNumber _91
     IFJMP:<{	//  msg_value s_addr op query_id wonNumber
       s2 POP	//  msg_value s_addr wonNumber query_id
-      SWAP	//  msg_value s_addr query_id wonNumber
-      isDozen2 INLINECALLDICT	//  msg_value s_addr query_id _86
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
-        1 LSHIFT#	//  query_id s_addr _88
+      OVER	//  msg_value s_addr wonNumber query_id wonNumber
+      isDozen2 INLINECALLDICT	//  msg_value s_addr wonNumber query_id _92
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s0 s3 XCHG	//  query_id s_addr wonNumber msg_value
+        1 LSHIFT#	//  query_id s_addr wonNumber _94
+        SWAP	//  query_id s_addr _94 wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr op query_id wonNumber
     s2 PUSH	//  msg_value s_addr op query_id wonNumber op
-    17 EQINT	//  msg_value s_addr op query_id wonNumber _91
+    17 EQINT	//  msg_value s_addr op query_id wonNumber _98
     IFJMP:<{	//  msg_value s_addr op query_id wonNumber
       s2 POP	//  msg_value s_addr wonNumber query_id
-      SWAP	//  msg_value s_addr query_id wonNumber
-      isDozen3 INLINECALLDICT	//  msg_value s_addr query_id _92
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
-        1 LSHIFT#	//  query_id s_addr _94
+      OVER	//  msg_value s_addr wonNumber query_id wonNumber
+      isDozen3 INLINECALLDICT	//  msg_value s_addr wonNumber query_id _99
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s0 s3 XCHG	//  query_id s_addr wonNumber msg_value
+        1 LSHIFT#	//  query_id s_addr wonNumber _101
+        SWAP	//  query_id s_addr _101 wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr op query_id wonNumber
     s2 PUSH	//  msg_value s_addr op query_id wonNumber op
-    18 EQINT	//  msg_value s_addr op query_id wonNumber _97
+    18 EQINT	//  msg_value s_addr op query_id wonNumber _105
     IFJMP:<{	//  msg_value s_addr op query_id wonNumber
       s2 POP	//  msg_value s_addr wonNumber query_id
-      SWAP	//  msg_value s_addr query_id wonNumber
-      is1To18 INLINECALLDICT	//  msg_value s_addr query_id _98
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
+      OVER	//  msg_value s_addr wonNumber query_id wonNumber
+      is1To18 INLINECALLDICT	//  msg_value s_addr wonNumber query_id _106
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr op query_id wonNumber
     s0 s2 XCHG	//  msg_value s_addr wonNumber query_id op
-    19 EQINT	//  msg_value s_addr wonNumber query_id _101
+    19 EQINT	//  msg_value s_addr wonNumber query_id _110
     IFJMP:<{	//  msg_value s_addr wonNumber query_id
-      SWAP	//  msg_value s_addr query_id wonNumber
-      is19To36 INLINECALLDICT	//  msg_value s_addr query_id _102
-      IFJMP:<{	//  msg_value s_addr query_id
-        s0 s2 XCHG	//  query_id s_addr msg_value
+      OVER	//  msg_value s_addr wonNumber query_id wonNumber
+      is19To36 INLINECALLDICT	//  msg_value s_addr wonNumber query_id _111
+      IFJMP:<{	//  msg_value s_addr wonNumber query_id
+        s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
         processWin CALLDICT
-      }>	//  msg_value s_addr query_id
-      3 BLKDROP	// 
+      }>	//  msg_value s_addr wonNumber query_id
+      s3 s3 XCHG2	//  query_id s_addr msg_value wonNumber
+      processLoss CALLDICT
     }>	//  msg_value s_addr wonNumber query_id
     4 BLKDROP	// 
   }>
@@ -512,9 +548,9 @@ PROGRAM{
     loadData CALLDICT	//  _12 _13 _14 _15 _16 _17 _18 _19 _20 _21
     6 BLKDROP
     s2 POP
-    s2 POP	//  minBet maxBet
-    TRUE	//  minBet maxBet _11
-    -ROT	//  _11 minBet maxBet
+    TRUE
+    s3 POP
+    SWAP	//  _11 minBet maxBet
   }>
   seqno PROC:<{
     // 

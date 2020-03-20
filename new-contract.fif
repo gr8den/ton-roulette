@@ -15,8 +15,8 @@ file-base +".pk" load-generate-keypair
 <b
   0 32 u, // seqno
   contract_pub B, // pub key
-  1 Gram, // min bet
-  1000 Gram, // max bet
+  1 Gram* Gram, // min bet
+  1000 Gram* Gram, // max bet
   0 64 u, // playedGames
   0 64 u, // wonGames
   0 64 u, // lostGames

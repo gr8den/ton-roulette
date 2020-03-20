@@ -12,7 +12,7 @@ address=`echo "$output" | grep "Bounceable address:" | awk '{print $3}'`
 
 echo "Send funds"
 # 0.05 - 0.015967997 (after init balance) = ~0.034 grams for init
-amount=0.2
+amount=0.5
 send-funds my-wallet-v2 $initAddress $amount || exit 3
 watch-wallet-until-create $initAddress || exit 4
 
